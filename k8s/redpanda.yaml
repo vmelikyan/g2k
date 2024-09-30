@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redpanda
+spec:
+  ports:
+    - port: 9092
+      name: kafka
+  selector:
+    app: redpanda
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redpanda
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redpanda
+  template:
+    metadata:
+      labels:
+        app: redpanda
+    spec:
+      containers:
+        - name: redpanda
+          image: vectorized/redpanda:latest
+          args:
+            - redpanda
+            - start
+            - --overprovisioned
+            - --smp
+            - "1"
+            - --memory
+            - 1G
+            - --reserve-memory
+            - 0M
+            - --node-id
+            - "0"
+            - --check=false
+            - --kafka-addr
+            - "PLAINTEXT://0.0.0.0:9092"
+            - --advertise-kafka-addr
+            - "PLAINTEXT://redpanda:9092"
+          ports:
+            - containerPort: 9092
+          resources:
+            limits:
+              memory: "2Gi"

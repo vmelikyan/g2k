@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: g2krelay
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: g2krelay
+  template:
+    metadata:
+      labels:
+        app: g2krelay
+    spec:
+      containers:
+        - name: g2krelay
+          image: g2krelay:dev
+          ports:
+            - containerPort: 5050
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "redpanda:9092"
+            - name: WEBHOOK_SECRET
+              value: "supersecret"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: g2krelay
+spec:
+  type: NodePort
+  ports:
+    - port: 5050
+      targetPort: 5050
+      nodePort: 30080
+  selector:
+    app: g2krelay

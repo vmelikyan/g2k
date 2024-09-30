@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: g2krepeater
+spec:
+  dnsPolicy: ClusterFirst
+  replicas: 1
+  selector:
+    matchLabels:
+      app: g2krepeater
+  template:
+    metadata:
+      labels:
+        app: g2krepeater
+    spec:
+      containers:
+        - name: g2krepeater
+          image: g2krepeater:dev
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "redpanda:9092"
+            - name: KAFKA_GROUP_ID
+              value: g2krepeater-group
