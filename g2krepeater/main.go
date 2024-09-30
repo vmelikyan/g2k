@@ -63,7 +63,10 @@ func main() {
 
 func sendMessageAsHTTPPost(message *kafka.Message) error {
 	// todo - support sending (repeating) the post request to multiple endpoints
-	url := "http://host.docker.internal:5001/api/webhooks/github"
+	url := os.Getenv("REPLAY_ENDPOINT")
+	if url == "" {
+		return fmt.Errorf("REPLAY_ENDPOINT not set")
+	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(message.Value))
 	if err != nil {

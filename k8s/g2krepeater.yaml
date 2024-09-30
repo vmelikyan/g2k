@@ -21,3 +21,5 @@ spec:
               value: "redpanda:9092"
             - name: KAFKA_GROUP_ID
               value: g2krepeater-group
+            - name: REPLAY_ENDPOINT
+              value: http://host.docker.internal:5001/api/webhooks/github
