@@ -1,7 +1,7 @@
 redpanda:
   enabled: true
   replicas: 1
-  image: "vectorized/redpanda:latest"
+  image: "redpandadata/redpanda:latest"
   containerPort: 9092
   overprovisioned: true
   smp: 1
