@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: redpanda
-          image: {{ .Values.redpanda.image | quote }}
+          image: {{ include "g2k.redpanda.image" . | quote }}
           args:
             - redpanda
             - start

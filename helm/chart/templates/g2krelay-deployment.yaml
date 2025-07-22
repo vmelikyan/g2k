@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: g2krelay
-          image: {{ .Values.g2krelay.image | quote }}
+          image: {{ include "g2k.g2krelay.image" . | quote }}
           env:
             {{- range $key, $val := .Values.g2krelay.envVars }}
             - name: {{ $key | quote }}

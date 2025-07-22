@@ -1,10 +1,21 @@
-{{- if .Values.g2krepeater.enabled }}
+{{- /* Handle backward compatibility - convert old single g2krepeater to new format */}}
+{{- $g2krepeaters := .Values.g2krepeaters }}
+{{- if and .Values.g2krepeater.enabled (not $g2krepeaters) }}
+  {{- $g2krepeaters = dict "default" .Values.g2krepeater }}
+{{- else if and .Values.g2krepeater.enabled (not (hasKey $g2krepeaters "default")) }}
+  {{- $_ := set $g2krepeaters "default" .Values.g2krepeater }}
+{{- end }}
+
+{{- range $name, $config := $g2krepeaters }}
+{{- if $config.enabled }}
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: g2krepeater
+  name: g2krepeater-{{ $name }}
   labels:
     app: g2krepeater
+    instance: {{ $name }}
 spec:
   type: ClusterIP
   ports:
@@ -12,5 +23,6 @@ spec:
       name: http
   selector:
     app: g2krepeater
+    instance: {{ $name }}
 {{- end }}
-
+{{- end }}

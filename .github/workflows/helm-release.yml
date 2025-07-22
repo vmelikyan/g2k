@@ -1,0 +1,39 @@
+name: Release Helm Chart (OCI)
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'helm/chart/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  release-oci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package and push Helm chart
+        run: |
+          cd helm
+          helm package chart
+          CHART_VERSION=$(grep '^version:' chart/Chart.yaml | awk '{print $2}')
+          helm push g2k-${CHART_VERSION}.tgz oci://ghcr.io/${{ github.repository_owner }}
