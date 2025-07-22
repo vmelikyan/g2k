@@ -1,27 +1,40 @@
-{{- if .Values.g2krepeater.enabled }}
+{{- /* Handle backward compatibility - convert old single g2krepeater to new format */}}
+{{- $g2krepeaters := .Values.g2krepeaters }}
+{{- if and .Values.g2krepeater.enabled (not $g2krepeaters) }}
+  {{- $g2krepeaters = dict "default" .Values.g2krepeater }}
+{{- else if and .Values.g2krepeater.enabled (not (hasKey $g2krepeaters "default")) }}
+  {{- $_ := set $g2krepeaters "default" .Values.g2krepeater }}
+{{- end }}
+
+{{- range $name, $config := $g2krepeaters }}
+{{- if $config.enabled }}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: g2krepeater
+  name: g2krepeater-{{ $name }}
   labels:
     app: g2krepeater
+    instance: {{ $name }}
 spec:
-  replicas: {{ .Values.g2krepeater.replicas }}
+  replicas: {{ $config.replicas }}
   selector:
     matchLabels:
       app: g2krepeater
+      instance: {{ $name }}
   template:
     metadata:
       labels:
         app: g2krepeater
+        instance: {{ $name }}
     spec:
       containers:
         - name: g2krepeater
-          image: {{ .Values.g2krepeater.image | quote }}
+          image: {{ include "g2k.g2krepeater.image" (dict "imageConfig" $config.image "chartAppVersion" $.Chart.AppVersion) | quote }}
           env:
-            {{- range $key, $val := .Values.g2krepeater.envVars }}
+            {{- range $key, $val := $config.envVars }}
             - name: {{ $key | quote }}
               value: {{ $val | quote }}
             {{- end }}
 {{- end }}
-
+{{- end }}

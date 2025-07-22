@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: redpanda-console
-          image: {{ .Values.redpandaConsole.image | quote }}
+          image: {{ include "g2k.redpandaConsole.image" . | quote }}
           ports:
             - containerPort: 8080
           env:

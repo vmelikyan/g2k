@@ -1,7 +1,22 @@
-# my-system/Chart.yaml
 apiVersion: v2
 name: g2k
-description: A Helm chart that deploys Redpanda, Redpanda Console, g2krelay, and g2krepeater
+description: A Helm chart for GitHub to Kafka webhook processing with Redpanda, supporting multiple webhook forwarders
 type: application
-version: 0.1.0
-appVersion: "1.0"
+version: 0.4.0
+appVersion: "0.4.0"
+home: https://github.com/vmelikyan/g2k
+sources:
+  - https://github.com/vmelikyan/g2k
+maintainers:
+  - name: vmelikyan
+    url: https://github.com/vmelikyan
+keywords:
+  - github
+  - webhooks
+  - kafka
+  - redpanda
+  - event-processing
+annotations:
+  artifacthub.io/changes: |
+    - kind: added
+      description: Support for multiple g2krepeater instances with different configurations
