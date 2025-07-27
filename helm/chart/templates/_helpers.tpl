@@ -14,6 +14,9 @@ Create image name with tag
 {{- $chartAppVersion := .chartAppVersion -}}
 {{- $defaultTag := .defaultTag | default $chartAppVersion -}}
 {{- $tag := $imageConfig.tag | default $defaultTag -}}
+{{- if and (not $imageConfig.tag) (not (hasPrefix "v" $tag)) (not (eq $tag "latest")) -}}
+{{- $tag = printf "v%s" $tag -}}
+{{- end -}}
 {{- printf "%s:%s" $imageConfig.repository $tag -}}
 {{- end -}}
 
@@ -31,6 +34,9 @@ Create g2krepeater image
 {{- $imageConfig := .imageConfig | default dict -}}
 {{- $repository := $imageConfig.repository | default "vmelikyan/g2krepeater" -}}
 {{- $tag := $imageConfig.tag | default .chartAppVersion -}}
+{{- if and (not $imageConfig.tag) (not (hasPrefix "v" $tag)) (not (eq $tag "latest")) -}}
+{{- $tag = printf "v%s" $tag -}}
+{{- end -}}
 {{- printf "%s:%s" $repository $tag -}}
 {{- end -}}
 
