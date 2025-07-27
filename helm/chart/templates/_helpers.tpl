@@ -28,7 +28,10 @@ Create g2krelay image
 Create g2krepeater image
 */}}
 {{- define "g2k.g2krepeater.image" -}}
-{{- include "g2k.image" (dict "imageConfig" .imageConfig "chartAppVersion" .chartAppVersion) -}}
+{{- $imageConfig := .imageConfig | default dict -}}
+{{- $repository := $imageConfig.repository | default "vmelikyan/g2krepeater" -}}
+{{- $tag := $imageConfig.tag | default .chartAppVersion -}}
+{{- printf "%s:%s" $repository $tag -}}
 {{- end -}}
 
 {{/*
