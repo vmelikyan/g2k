@@ -1,8 +1,8 @@
 {{- /* Handle backward compatibility - convert old single g2krepeater to new format */}}
 {{- $g2krepeaters := .Values.g2krepeaters }}
-{{- if and .Values.g2krepeater.enabled (not $g2krepeaters) }}
+{{- if and ((.Values.g2krepeater).enabled | default false) (not $g2krepeaters) }}
   {{- $g2krepeaters = dict "default" .Values.g2krepeater }}
-{{- else if and .Values.g2krepeater.enabled (not (hasKey $g2krepeaters "default")) }}
+{{- else if and ((.Values.g2krepeater).enabled | default false) (not (hasKey $g2krepeaters "default")) }}
   {{- $_ := set $g2krepeaters "default" .Values.g2krepeater }}
 {{- end }}
 
