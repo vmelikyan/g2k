@@ -3,7 +3,7 @@ redpanda:
   replicas: 1
   image:
     repository: redpandadata/redpanda
-    tag: ""  # Defaults to latest if not specified
+    tag: "" # Defaults to latest if not specified
   containerPort: 9092
   overprovisioned: true
   smp: 1
@@ -19,7 +19,7 @@ redpandaConsole:
   enabled: true
   image:
     repository: redpandadata/console
-    tag: ""  # Defaults to latest if not specified
+    tag: "" # Defaults to latest if not specified
   replicas: 1
   kafkaBrokers: "redpanda.lifecycle-app.svc.cluster.local:9092"
 
@@ -28,7 +28,7 @@ g2krelay:
   replicas: 1
   image:
     repository: vmelikyan/g2krelay
-    tag: ""  # Defaults to Chart.AppVersion if not specified
+    tag: "" # Defaults to Chart.AppVersion if not specified
   serviceType: ClusterIP
   servicePort: 5050
   envVars:
@@ -43,14 +43,14 @@ g2krelay:
     tls: []
 
 g2krepeaters: {}
-
-g2krepeater:
-  enabled: true
-  replicas: 1
-  image:
-    repository: vmelikyan/g2krepeater
-    tag: ""  # Defaults to Chart.AppVersion if not specified
-  envVars:
-    KAFKA_BOOTSTRAP_SERVERS: "redpanda:9092"
-    KAFKA_GROUP_ID: "g2krepeater-default"
-    REPLAY_ENDPOINTS: ""
+# Legacy single g2krepeater configuration (for backward compatibility)
+# g2krepeater:
+#   enabled: false
+#   replicas: 1
+#   image:
+#     repository: vmelikyan/g2krepeater
+#     tag: ""  # Defaults to Chart.AppVersion if not specified
+#   envVars:
+#     KAFKA_BOOTSTRAP_SERVERS: "redpanda:9092"
+#     KAFKA_GROUP_ID: "g2krepeater-default"
+#     REPLAY_ENDPOINTS: ""
