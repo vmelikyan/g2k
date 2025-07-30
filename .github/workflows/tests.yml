@@ -2,15 +2,15 @@ name: Tests
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
     paths:
       - "helm/chart/**"
-      - ".github/workflows/helm-test.yml"
+      - ".github/workflows/tests.yml"
   pull_request:
-    branches: [main, develop]
+    branches: [main]
     paths:
       - "helm/chart/**"
-      - ".github/workflows/helm-test.yml"
+      - ".github/workflows/tests.yml"
   workflow_dispatch:
 
 permissions:
