@@ -1,0 +1,116 @@
+suite: test g2krelay ingress
+templates:
+  - g2krelay-ingress.yaml
+tests:
+  - it: should create ingress when g2krelay.ingress.enabled is true
+    set:
+      g2krelay.enabled: true
+      g2krelay.ingress.enabled: true
+      g2krelay.ingress.host: "webhook.example.com"
+      g2krelay.servicePort: 5050
+    asserts:
+      - isKind:
+          of: Ingress
+      - equal:
+          path: metadata.name
+          value: g2krelay
+      - equal:
+          path: spec.rules[0].host
+          value: "webhook.example.com"
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.name
+          value: g2krelay
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.port.number
+          value: 5050
+
+  - it: should not create ingress when g2krelay.ingress.enabled is false
+    set:
+      g2krelay.enabled: true
+      g2krelay.ingress.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should not create ingress when g2krelay is disabled
+    set:
+      g2krelay.enabled: false
+      g2krelay.ingress.enabled: true
+      g2krelay.ingress.host: "webhook.example.com"
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should use custom path when specified
+    set:
+      g2krelay.enabled: true
+      g2krelay.ingress.enabled: true
+      g2krelay.ingress.host: "webhook.example.com"
+      g2krelay.ingress.path: "/webhooks"
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].path
+          value: "/webhooks"
+
+  - it: should use default path when not specified
+    set:
+      g2krelay.enabled: true
+      g2krelay.ingress.enabled: true
+      g2krelay.ingress.host: "webhook.example.com"
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].path
+          value: "/"
+
+  - it: should set custom ingress class when specified
+    set:
+      g2krelay.enabled: true
+      g2krelay.ingress.enabled: true
+      g2krelay.ingress.host: "webhook.example.com"
+      g2krelay.ingress.className: "traefik"
+    asserts:
+      - equal:
+          path: spec.ingressClassName
+          value: "traefik"
+
+  - it: should use default nginx ingress class when not specified
+    set:
+      g2krelay.enabled: true
+      g2krelay.ingress.enabled: true
+      g2krelay.ingress.host: "webhook.example.com"
+    asserts:
+      - equal:
+          path: spec.ingressClassName
+          value: "nginx"
+
+  - it: should include TLS configuration when specified
+    set:
+      g2krelay.enabled: true
+      g2krelay.ingress.enabled: true
+      g2krelay.ingress.host: "webhook.example.com"
+      g2krelay.ingress.tls:
+        - host: "webhook.example.com"
+          secretName: "webhook-tls"
+    asserts:
+      - equal:
+          path: spec.tls[0].hosts[0]
+          value: "webhook.example.com"
+      - equal:
+          path: spec.tls[0].secretName
+          value: "webhook-tls"
+
+  - it: should include annotations when specified
+    set:
+      g2krelay.enabled: true
+      g2krelay.ingress.enabled: true
+      g2krelay.ingress.host: "webhook.example.com"
+      g2krelay.ingress.annotations:
+        "nginx.ingress.kubernetes.io/ssl-redirect": "true"
+        "cert-manager.io/cluster-issuer": "letsencrypt-prod"
+    asserts:
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/ssl-redirect"]
+          value: "true"
+      - equal:
+          path: metadata.annotations["cert-manager.io/cluster-issuer"]
+          value: "letsencrypt-prod"

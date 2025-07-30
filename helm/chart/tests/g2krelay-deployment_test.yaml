@@ -1,0 +1,85 @@
+suite: test g2krelay deployment
+templates:
+  - g2krelay-deployment.yaml
+tests:
+  - it: should fail when WEBHOOK_SECRET is not set
+    set:
+      g2krelay.enabled: true
+      g2krelay.envVars: {}
+    asserts:
+      - failedTemplate:
+          errorMessage: "WEBHOOK_SECRET is required to validate data from GitHub. Please provide a non-empty value for g2krelay.envVars.WEBHOOK_SECRET"
+
+  - it: should fail when WEBHOOK_SECRET is empty string
+    set:
+      g2krelay.enabled: true
+      g2krelay.envVars:
+        WEBHOOK_SECRET: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "WEBHOOK_SECRET is required to validate data from GitHub. Please provide a non-empty value for g2krelay.envVars.WEBHOOK_SECRET"
+
+  - it: should succeed when WEBHOOK_SECRET is set
+    set:
+      g2krelay.enabled: true
+      g2krelay.envVars:
+        WEBHOOK_SECRET: "my-secret-key"
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: g2krelay
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: "WEBHOOK_SECRET"
+            value: "my-secret-key"
+
+  - it: should use external kafka brokers when global.kafka.enabled is false
+    set:
+      g2krelay.enabled: true
+      g2krelay.envVars:
+        WEBHOOK_SECRET: "my-secret-key"
+      global.kafka.enabled: false
+      global.kafka.externalBrokers: "kafka1.example.com:9092,kafka2.example.com:9092"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: "KAFKA_BOOTSTRAP_SERVERS"
+            value: "kafka1.example.com:9092,kafka2.example.com:9092"
+
+  - it: should use redpanda brokers when global.kafka.enabled is true
+    set:
+      g2krelay.enabled: true
+      g2krelay.envVars:
+        WEBHOOK_SECRET: "my-secret-key"
+      global.kafka.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: "KAFKA_BOOTSTRAP_SERVERS"
+            value: "RELEASE-NAME.NAMESPACE.svc.cluster.local:9093"
+
+  - it: should allow custom KAFKA_BOOTSTRAP_SERVERS override from envVars
+    set:
+      g2krelay.enabled: true
+      g2krelay.envVars:
+        WEBHOOK_SECRET: "my-secret-key"
+        KAFKA_BOOTSTRAP_SERVERS: "custom-kafka:9092"
+      global.kafka.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: "KAFKA_BOOTSTRAP_SERVERS"
+            value: "custom-kafka:9092"
+
+  - it: should not render when g2krelay is disabled
+    set:
+      g2krelay.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0

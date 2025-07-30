@@ -1,4 +1,7 @@
 {{- if .Values.g2krelay.enabled }}
+{{- if not (and .Values.g2krelay.envVars.WEBHOOK_SECRET (ne .Values.g2krelay.envVars.WEBHOOK_SECRET "")) }}
+{{- fail "WEBHOOK_SECRET is required to validate data from GitHub. Please provide a non-empty value for g2krelay.envVars.WEBHOOK_SECRET" }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,9 +22,15 @@ spec:
         - name: g2krelay
           image: {{ include "g2k.g2krelay.image" . | quote }}
           env:
+            # Always inject KAFKA_BOOTSTRAP_SERVERS with auto-config, unless explicitly overridden
+            - name: "KAFKA_BOOTSTRAP_SERVERS"
+              value: {{ if and .Values.g2krelay.envVars (hasKey .Values.g2krelay.envVars "KAFKA_BOOTSTRAP_SERVERS") (ne (index .Values.g2krelay.envVars "KAFKA_BOOTSTRAP_SERVERS") "") }}{{ index .Values.g2krelay.envVars "KAFKA_BOOTSTRAP_SERVERS" | quote }}{{ else }}{{ include "g2k.kafkaBrokers" . | quote }}{{ end }}
+            # Process all other environment variables (except KAFKA_BOOTSTRAP_SERVERS to avoid duplicates)
             {{- range $key, $val := .Values.g2krelay.envVars }}
+            {{- if ne $key "KAFKA_BOOTSTRAP_SERVERS" }}
             - name: {{ $key | quote }}
               value: {{ $val | quote }}
+            {{- end }}
             {{- end }}
           ports:
             - containerPort: 5050

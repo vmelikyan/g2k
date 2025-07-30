@@ -24,6 +24,14 @@ All webhook events are validated with wbhook secret.
 A kafka consumer that reads from the topic and sends POST requests to specified endpoint with the original webhook payload and headers.
 This enables apps that use webhooks to be able to use kafka as a message bus without needing a change.
 
+## Features
+
+- **Persistent Storage**: Uses official Redpanda Helm chart with StatefulSet and PersistentVolumes (configurable)
+- **High Availability**: Support for multiple replicas of both g2krelay and g2krepeater
+- **Flexible Routing**: Deploy multiple g2krepeater instances with different configurations
+- **Repository Filtering**: Route webhooks from specific repositories to specific endpoints
+- **HMAC Validation**: All webhooks are validated using GitHub webhook secrets
+
 ## Running the server
 
 For easy setup install `tilt` and `kind`
@@ -42,19 +50,76 @@ The tilt setup uses `redpanda` for running kafka locally. In addition we bootstr
 
 ### Using Helm
 
+#### Quick Start with Default Configuration
+
+The Helm chart includes everything needed to get started:
+
+- Built-in Redpanda (Kafka) cluster with persistent storage
+- g2krelay webhook receiver (port 5050)
+- Full validation and message routing
+
+**⚠️ Required Configuration**: You **must** provide a `WEBHOOK_SECRET` for GitHub webhook validation:
+
+```bash
+# Install with required webhook secret
+helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.5.0 \
+  --set g2krelay.envVars.WEBHOOK_SECRET="your-github-webhook-secret-here"
+```
+
+This creates a production-ready setup with:
+
+- Persistent storage for message durability
+- HMAC validation for webhook security
+- Internal Kafka cluster (Redpanda) handling up to 10Gi of data
+
 #### Install from OCI Registry (GitHub Container Registry)
 
 ```bash
-# Install directly from OCI registry
-helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.4.0
+# Basic installation (WEBHOOK_SECRET required)
+helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.5.0 \
+  --set g2krelay.envVars.WEBHOOK_SECRET="your-webhook-secret"
 
-# Install with custom values
-helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.4.0 -f custom-values.yaml
+# Install with external Kafka (no Redpanda deployment)
+helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.5.0 \
+  --set global.kafka.enabled=false \
+  --set global.kafka.externalBrokers="kafka.example.com:9092" \
+  --set g2krelay.envVars.WEBHOOK_SECRET="your-webhook-secret"
 
-# Install with specific image versions
-helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.4.0 \
-  --set g2krelay.image.tag=0.4.0 \
-  --set g2krepeater.image.tag=0.4.0
+```
+
+#### Storage and External Kafka Options
+
+**Built-in Redpanda (default)**:
+
+- **StatefulSet** deployment with stable broker identities
+- **Persistent volumes** that survive pod restarts (10Gi default)
+- **Production-ready** configurations with automatic scaling
+- **No external dependencies** - complete Kafka solution included
+
+**External Kafka/Redpanda support**:
+
+- Use existing Kafka clusters (AWS MSK, Confluent Cloud, self-hosted, etc.)
+- Deploy only g2krelay and/or g2krepeater components
+- Reduce resource usage in Kubernetes cluster
+- Connect to external Redpanda clusters for better performance/cost
+
+**External Kafka Configuration Examples**:
+
+```bash
+# Connect to external Redpanda cluster
+helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.5.0 \
+  --set global.kafka.enabled=false \
+  --set global.kafka.externalBrokers="redpanda-cluster.example.com:9092" \
+  --set g2krelay.envVars.WEBHOOK_SECRET="your-webhook-secret"
+
+
+# Deploy only g2krelay (use external consumers)
+helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.5.0 \
+  --set global.kafka.enabled=false \
+  --set global.kafka.externalBrokers="kafka.example.com:9092" \
+  --set g2krelay.enabled=true \
+  --set g2krelay.envVars.WEBHOOK_SECRET="your-webhook-secret" \
+  --set g2krepeaters={}  # Disable all repeaters
 ```
 
 #### Deploy Multiple Repeaters
@@ -63,6 +128,10 @@ The chart supports deploying multiple g2krepeater instances with different confi
 
 ```yaml
 # values-custom.yaml
+g2krelay:
+  envVars:
+    WEBHOOK_SECRET: "your-github-webhook-secret"
+
 g2krepeaters:
   production:
     enabled: true
@@ -70,8 +139,8 @@ g2krepeaters:
     envVars:
       KAFKA_GROUP_ID: "g2krepeater-production"
       REPLAY_ENDPOINTS: "https://prod.example.com/webhooks"
-      REPO_FILTERS: ""  # Process all repos
-  
+      REPO_FILTERS: "" # Process all repos
+
   development:
     enabled: true
     replicas: 1
@@ -84,7 +153,19 @@ g2krepeaters:
 Then deploy:
 
 ```bash
-helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.4.0 -f values-custom.yaml
+helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.5.0 -f values-custom.yaml
+```
+
+### Tests
+
+Run tests locally:
+
+```bash
+# Install helm-unittest plugin
+helm plugin install https://github.com/helm-unittest/helm-unittest
+
+# Run all tests
+helm unittest helm/chart
 ```
 
 ### Using Docker Images

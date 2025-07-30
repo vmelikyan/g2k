@@ -1,0 +1,45 @@
+redpanda:
+  storage:
+    persistentVolume:
+      enabled: true
+      size: 20Gi
+      storageClass: "fast-ssd"
+  resources:
+    cpu:
+      cores: 2
+    memory:
+      enable_memory_locking: false
+      container:
+        max: 4Gi
+  statefulset:
+    replicas: 3
+  console:
+    enabled: true
+  listeners:
+    kafka:
+      tls:
+        enabled: false
+
+g2krelay:
+  enabled: true
+  replicas: 2
+  envVars:
+    WEBHOOK_SECRET: "your-production-webhook-secret"
+
+# Multiple g2krepeater instances with different configurations
+g2krepeaters:
+  production:
+    enabled: true
+    replicas: 3
+    envVars:
+      KAFKA_GROUP_ID: "g2krepeater-production"
+      REPLAY_ENDPOINTS: "https://prod.example.com/webhooks,https://prod-backup.example.com/webhooks"
+      REPO_FILTERS: "" # Process all repositories
+
+  development:
+    enabled: true
+    replicas: 1
+    envVars:
+      KAFKA_GROUP_ID: "g2krepeater-development"
+      REPLAY_ENDPOINTS: "https://dev.example.com/webhooks"
+      REPO_FILTERS: "myorg/frontend,myorg/backend,myorg/mobile-app"

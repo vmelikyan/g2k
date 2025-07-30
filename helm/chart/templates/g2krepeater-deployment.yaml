@@ -32,9 +32,15 @@ spec:
         - name: g2krepeater
           image: {{ include "g2k.g2krepeater.image" (dict "imageConfig" $config.image "chartAppVersion" $.Chart.AppVersion) | quote }}
           env:
+            # Always inject KAFKA_BOOTSTRAP_SERVERS with auto-config, unless explicitly overridden
+            - name: "KAFKA_BOOTSTRAP_SERVERS"
+              value: {{ if and $config.envVars (hasKey $config.envVars "KAFKA_BOOTSTRAP_SERVERS") (ne (index $config.envVars "KAFKA_BOOTSTRAP_SERVERS") "") }}{{ index $config.envVars "KAFKA_BOOTSTRAP_SERVERS" | quote }}{{ else }}{{ include "g2k.kafkaBrokers" $ | quote }}{{ end }}
+            # Process all other environment variables (except KAFKA_BOOTSTRAP_SERVERS to avoid duplicates)
             {{- range $key, $val := $config.envVars }}
+            {{- if ne $key "KAFKA_BOOTSTRAP_SERVERS" }}
             - name: {{ $key | quote }}
               value: {{ $val | quote }}
+            {{- end }}
             {{- end }}
 {{- end }}
 {{- end }}

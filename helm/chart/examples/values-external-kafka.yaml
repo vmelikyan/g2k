@@ -1,0 +1,36 @@
+# Example values file for using external Kafka cluster
+# This disables the Redpanda subchart and uses external brokers
+
+# Disable Redpanda subchart and use external Kafka
+global:
+  kafka:
+    enabled: false
+    externalBrokers: "kafka1.example.com:9092,kafka2.example.com:9092,kafka3.example.com:9092"
+
+# g2krelay configuration
+g2krelay:
+  enabled: true
+  replicas: 1
+  envVars:
+    WEBHOOK_SECRET: "your-webhook-secret"
+
+# g2krepeater configurations
+g2krepeaters:
+  # Forward to production endpoint
+  production:
+    enabled: true
+    replicas: 3
+    envVars:
+      KAFKA_GROUP_ID: "g2krepeater-production"
+      REPLAY_ENDPOINTS: "https://prod.example.com/webhook"
+      REPO_FILTERS: "" # All repos
+
+  # Forward to staging endpoint with specific repos
+  staging:
+    enabled: true
+    replicas: 1
+    envVars:
+      KAFKA_GROUP_ID: "g2krepeater-staging"
+      REPLAY_ENDPOINTS: "https://staging.example.com/webhook"
+      REPO_FILTERS: "myorg/api,myorg/frontend"
+

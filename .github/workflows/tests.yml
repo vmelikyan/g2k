@@ -1,0 +1,75 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "helm/chart/**"
+      - ".github/workflows/tests.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "helm/chart/**"
+      - ".github/workflows/tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  helm-test:
+    runs-on: ubuntu-latest
+    name: Run Helm Unit Tests
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Install helm-unittest plugin
+        run: |
+          helm plugin install https://github.com/helm-unittest/helm-unittest
+
+      - name: Verify plugin installation
+        run: |
+          helm plugin list
+
+      - name: Run Helm unit tests
+        run: |
+          cd helm
+          helm unittest chart
+
+      - name: Test chart linting
+        run: |
+          cd helm
+          helm lint chart --set g2krelay.envVars.WEBHOOK_SECRET="test-secret"
+
+      - name: Test chart template rendering (smoke test)
+        run: |
+          cd helm
+          helm template test-release chart \
+            --set g2krelay.envVars.WEBHOOK_SECRET="test-secret" \
+            --dry-run > /dev/null
+
+          helm template test-release chart \
+            --set g2krelay.envVars.WEBHOOK_SECRET="test-secret" \
+            --set global.kafka.enabled=false \
+            --set global.kafka.externalBrokers="kafka.example.com:9092" \
+            --dry-run > /dev/null
+
+          helm template test-release chart \
+            --set g2krelay.envVars.WEBHOOK_SECRET="test-secret" \
+            --set g2krepeaters.test.enabled=true \
+            --set g2krepeaters.test.envVars.KAFKA_GROUP_ID="test-group" \
+            --set g2krepeaters.test.envVars.REPLAY_ENDPOINTS="https://example.com/webhook" \
+            --dry-run > /dev/null
+
+      - name: Test chart packaging
+        run: |
+          cd helm
+          helm package chart
+          ls -la g2k-*.tgz
