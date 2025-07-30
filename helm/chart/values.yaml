@@ -1,27 +1,33 @@
-redpanda:
-  enabled: true
-  replicas: 1
-  image:
-    repository: redpandadata/redpanda
-    tag: "" # Defaults to latest if not specified
-  containerPort: 9092
-  overprovisioned: true
-  smp: 1
-  memory: "1G"
-  reserveMemory: "0M"
-  nodeId: "0"
-  kafkaAdvertisedHost: "redpanda"
-  resources:
-    limits:
-      memory: "2Gi"
+# Global configuration
+global:
+  kafka:
+    # Set to false to disable Redpanda subchart and use external Kafka
+    enabled: true
+    # External Kafka broker addresses (used when enabled=false)
+    # Example: "kafka1.example.com:9092,kafka2.example.com:9092"
+    externalBrokers: ""
 
-redpandaConsole:
-  enabled: true
-  image:
-    repository: redpandadata/console
-    tag: "" # Defaults to latest if not specified
-  replicas: 1
-  kafkaBrokers: "redpanda.lifecycle-app.svc.cluster.local:9092"
+# Configuration for the official Redpanda Helm chart
+# These values are passed to the redpanda subchart when global.kafka.enabled=true
+redpanda:
+  storage:
+    persistentVolume:
+      enabled: true
+      size: 10Gi
+      storageClass: "" # Uses default storage class if not specified
+  resources:
+    cpu:
+      cores: 1
+    memory:
+      enable_memory_locking: false
+      container:
+        max: 2Gi
+  console:
+    enabled: false # Disable console by default - can be enabled with proper configuration
+  listeners:
+    kafka:
+      tls:
+        enabled: false
 
 g2krelay:
   enabled: true
@@ -31,26 +37,8 @@ g2krelay:
     tag: "" # Defaults to Chart.AppVersion if not specified
   serviceType: ClusterIP
   servicePort: 5050
-  envVars:
-    KAFKA_BOOTSTRAP_SERVERS: "redpanda:9092"
-    WEBHOOK_SECRET: ""
 
   ingress:
     enabled: false
-    host: ""
-    path: "/"
-    annotations: {}
-    tls: []
 
 g2krepeaters: {}
-# Legacy single g2krepeater configuration (for backward compatibility)
-# g2krepeater:
-#   enabled: false
-#   replicas: 1
-#   image:
-#     repository: vmelikyan/g2krepeater
-#     tag: ""  # Defaults to Chart.AppVersion if not specified
-#   envVars:
-#     KAFKA_BOOTSTRAP_SERVERS: "redpanda:9092"
-#     KAFKA_GROUP_ID: "g2krepeater-default"
-#     REPLAY_ENDPOINTS: ""

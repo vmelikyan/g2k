@@ -1,0 +1,43 @@
+# Example values file for development/testing environments
+# Uses minimal resources and smaller storage
+
+redpanda:
+  storage:
+    persistentVolume:
+      enabled: true
+      size: 5Gi
+      storageClass: ""
+  resources:
+    cpu:
+      cores: 1
+      overprovisioned: true
+    memory:
+      enable_memory_locking: false
+      container:
+        max: 2Gi
+  statefulset:
+    replicas: 1
+  console:
+    enabled: true
+  listeners:
+    kafka:
+      tls:
+        enabled: false
+
+# g2krelay configuration
+g2krelay:
+  enabled: true
+  replicas: 1
+  envVars:
+    WEBHOOK_SECRET: "dev-webhook-secret"
+
+# Simple g2krepeater for testing
+g2krepeaters:
+  test:
+    enabled: true
+    replicas: 1
+    envVars:
+      KAFKA_GROUP_ID: "g2krepeater-test"
+      REPLAY_ENDPOINTS: "http://webhook-test-service.default.svc.cluster.local/webhook"
+      REPO_FILTERS: "" # All repos
+

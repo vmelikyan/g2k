@@ -40,17 +40,17 @@ Create g2krepeater image
 {{- printf "%s:%s" $repository $tag -}}
 {{- end -}}
 
-{{/*
-Create redpanda image
-*/}}
-{{- define "g2k.redpanda.image" -}}
-{{- include "g2k.image" (dict "imageConfig" .Values.redpanda.image "chartAppVersion" .Chart.AppVersion "defaultTag" "latest") -}}
-{{- end -}}
 
 {{/*
-Create redpanda console image
+Get Kafka broker address - either from Redpanda subchart or external brokers
 */}}
-{{- define "g2k.redpandaConsole.image" -}}
-{{- include "g2k.image" (dict "imageConfig" .Values.redpandaConsole.image "chartAppVersion" .Chart.AppVersion "defaultTag" "latest") -}}
+{{- define "g2k.kafkaBrokers" -}}
+{{- if .Values.global.kafka.enabled -}}
+{{- printf "%s.%s.svc.cluster.local:9093" .Release.Name .Release.Namespace -}}
+{{- else if .Values.global.kafka.externalBrokers -}}
+{{- .Values.global.kafka.externalBrokers -}}
+{{- else -}}
+{{- fail "Either global.kafka.enabled must be true or global.kafka.externalBrokers must be specified" -}}
+{{- end -}}
 {{- end -}}
 

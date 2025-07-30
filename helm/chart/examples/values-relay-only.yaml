@@ -1,0 +1,32 @@
+# Example values file for deploying only g2krelay
+# Uses external Kafka and disables all g2krepeaters
+
+# Disable Redpanda subchart and use external Kafka
+global:
+  kafka:
+    enabled: false
+    externalBrokers: "my-kafka-cluster.example.com:9092"
+
+# Only deploy g2krelay
+g2krelay:
+  enabled: true
+  replicas: 2
+  envVars:
+    WEBHOOK_SECRET: "relay-webhook-secret"
+
+  ingress:
+    enabled: true
+    host: "github-webhooks.example.com"
+    path: "/"
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    tls:
+      - secretName: github-webhooks-tls
+        hosts:
+          - github-webhooks.example.com
+
+# Disable all g2krepeaters (consumers will be deployed separately)
+g2krepeaters: {}
+
