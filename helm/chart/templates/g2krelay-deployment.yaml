@@ -18,6 +18,18 @@ spec:
       labels:
         app: g2krelay
     spec:
+      {{- with .Values.g2krelay.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.g2krelay.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.g2krelay.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: g2krelay
           image: {{ include "g2k.g2krelay.image" . | quote }}

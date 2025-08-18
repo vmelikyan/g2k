@@ -83,3 +83,97 @@ tests:
     asserts:
       - hasDocuments:
           count: 0
+
+  - it: should include nodeSelector when specified
+    set:
+      g2krelay.enabled: true
+      g2krelay.envVars:
+        WEBHOOK_SECRET: "my-secret-key"
+      g2krelay.nodeSelector:
+        node-type: worker
+        environment: production
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeSelector
+          value:
+            node-type: worker
+            environment: production
+
+  - it: should include affinity when specified
+    set:
+      g2krelay.enabled: true
+      g2krelay.envVars:
+        WEBHOOK_SECRET: "my-secret-key"
+      g2krelay.affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+    asserts:
+      - equal:
+          path: spec.template.spec.affinity
+          value:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                - matchExpressions:
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values:
+                    - amd64
+
+  - it: should include tolerations when specified
+    set:
+      g2krelay.enabled: true
+      g2krelay.envVars:
+        WEBHOOK_SECRET: "my-secret-key"
+      g2krelay.tolerations:
+        - key: "node-group"
+          operator: "Equal"
+          value: "g2k-nodes"
+          effect: "NoSchedule"
+        - key: "special"
+          operator: "Exists"
+          effect: "NoExecute"
+    asserts:
+      - equal:
+          path: spec.template.spec.tolerations
+          value:
+            - key: "node-group"
+              operator: "Equal"
+              value: "g2k-nodes"
+              effect: "NoSchedule"
+            - key: "special"
+              operator: "Exists"
+              effect: "NoExecute"
+
+  - it: should not include nodeSelector when not specified
+    set:
+      g2krelay.enabled: true
+      g2krelay.envVars:
+        WEBHOOK_SECRET: "my-secret-key"
+    asserts:
+      - isNull:
+          path: spec.template.spec.nodeSelector
+
+  - it: should not include affinity when not specified
+    set:
+      g2krelay.enabled: true
+      g2krelay.envVars:
+        WEBHOOK_SECRET: "my-secret-key"
+    asserts:
+      - isNull:
+          path: spec.template.spec.affinity
+
+  - it: should not include tolerations when not specified
+    set:
+      g2krelay.enabled: true
+      g2krelay.envVars:
+        WEBHOOK_SECRET: "my-secret-key"
+    asserts:
+      - isNull:
+          path: spec.template.spec.tolerations

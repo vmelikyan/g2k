@@ -1,0 +1,195 @@
+suite: test g2krepeater deployment
+templates:
+  - g2krepeater-deployment.yaml
+tests:
+  - it: should include nodeSelector when specified for single instance
+    set:
+      g2krepeaters:
+        default:
+          enabled: true
+          replicas: 1
+          envVars:
+            KAFKA_GROUP_ID: "default-group"
+          nodeSelector:
+            node-type: worker
+            environment: production
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeSelector
+          value:
+            node-type: worker
+            environment: production
+
+  - it: should include affinity when specified for single instance
+    set:
+      g2krepeaters:
+        default:
+          enabled: true
+          replicas: 1
+          envVars:
+            KAFKA_GROUP_ID: "default-group"
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                - matchExpressions:
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values:
+                    - amd64
+    asserts:
+      - equal:
+          path: spec.template.spec.affinity
+          value:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                - matchExpressions:
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values:
+                    - amd64
+
+  - it: should include tolerations when specified for single instance
+    set:
+      g2krepeaters:
+        default:
+          enabled: true
+          replicas: 1
+          envVars:
+            KAFKA_GROUP_ID: "default-group"
+          tolerations:
+            - key: "node-group"
+              operator: "Equal"
+              value: "g2k-nodes"
+              effect: "NoSchedule"
+            - key: "special"
+              operator: "Exists"
+              effect: "NoExecute"
+    asserts:
+      - equal:
+          path: spec.template.spec.tolerations
+          value:
+            - key: "node-group"
+              operator: "Equal"
+              value: "g2k-nodes"
+              effect: "NoSchedule"
+            - key: "special"
+              operator: "Exists"
+              effect: "NoExecute"
+
+  - it: should not include nodeSelector when not specified
+    set:
+      g2krepeaters:
+        default:
+          enabled: true
+          replicas: 1
+          envVars:
+            KAFKA_GROUP_ID: "default-group"
+    asserts:
+      - isNull:
+          path: spec.template.spec.nodeSelector
+
+  - it: should not include affinity when not specified
+    set:
+      g2krepeaters:
+        default:
+          enabled: true
+          replicas: 1
+          envVars:
+            KAFKA_GROUP_ID: "default-group"
+    asserts:
+      - isNull:
+          path: spec.template.spec.affinity
+
+  - it: should not include tolerations when not specified
+    set:
+      g2krepeaters:
+        default:
+          enabled: true
+          replicas: 1
+          envVars:
+            KAFKA_GROUP_ID: "default-group"
+    asserts:
+      - isNull:
+          path: spec.template.spec.tolerations
+
+  - it: should handle multiple instances with different node scheduling configs
+    set:
+      g2krepeaters:
+        instance1:
+          enabled: true
+          replicas: 1
+          envVars:
+            KAFKA_GROUP_ID: "group1"
+          nodeSelector:
+            node-type: worker
+        instance2:
+          enabled: true
+          replicas: 2
+          envVars:
+            KAFKA_GROUP_ID: "group2"
+          tolerations:
+            - key: "dedicated"
+              operator: "Equal"
+              value: "g2k"
+              effect: "NoSchedule"
+    asserts:
+      - hasDocuments:
+          count: 2
+      - equal:
+          path: spec.template.spec.nodeSelector
+          value:
+            node-type: worker
+        documentIndex: 0
+      - isNull:
+          path: spec.template.spec.nodeSelector
+        documentIndex: 1
+      - equal:
+          path: spec.template.spec.tolerations
+          value:
+            - key: "dedicated"
+              operator: "Equal"
+              value: "g2k"
+              effect: "NoSchedule"
+        documentIndex: 1
+      - isNull:
+          path: spec.template.spec.tolerations
+        documentIndex: 0
+
+  - it: should not render when no g2krepeaters are enabled
+    set:
+      g2krepeaters: {}
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should support backward compatibility with legacy g2krepeater config
+    set:
+      g2krepeater:
+        enabled: true
+        replicas: 1
+        envVars:
+          KAFKA_GROUP_ID: "legacy-group"
+        nodeSelector:
+          legacy: "true"
+        tolerations:
+          - key: "legacy"
+            operator: "Exists"
+            effect: "NoSchedule"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: g2krepeater-default
+      - equal:
+          path: spec.template.spec.nodeSelector
+          value:
+            legacy: "true"
+      - equal:
+          path: spec.template.spec.tolerations
+          value:
+            - key: "legacy"
+              operator: "Exists"
+              effect: "NoSchedule"

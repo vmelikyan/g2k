@@ -28,6 +28,18 @@ spec:
         app: g2krepeater
         instance: {{ $name }}
     spec:
+      {{- with $config.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $config.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $config.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: g2krepeater
           image: {{ include "g2k.g2krepeater.image" (dict "imageConfig" $config.image "chartAppVersion" $.Chart.AppVersion) | quote }}
