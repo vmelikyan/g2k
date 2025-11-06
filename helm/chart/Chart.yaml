@@ -2,7 +2,7 @@ apiVersion: v2
 name: g2k
 description: A Helm chart for GitHub to Kafka webhook processing with Redpanda, supporting multiple webhook forwarders
 type: application
-version: 0.5.0
+version: 0.6.0
 appVersion: "0.4.0"
 home: https://github.com/vmelikyan/g2k
 sources:
