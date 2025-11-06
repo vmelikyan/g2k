@@ -33,6 +33,10 @@ spec:
       containers:
         - name: g2krelay
           image: {{ include "g2k.g2krelay.image" . | quote }}
+          {{- with .Values.g2krelay.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           env:
             # Always inject KAFKA_BOOTSTRAP_SERVERS with auto-config, unless explicitly overridden
             - name: "KAFKA_BOOTSTRAP_SERVERS"

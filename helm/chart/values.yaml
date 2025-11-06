@@ -38,7 +38,37 @@ g2krelay:
   serviceType: ClusterIP
   servicePort: 5050
 
+  resources:
+    requests:
+      cpu: 250m
+      memory: 500Mi
+      ephemeral-storage: 100Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+      ephemeral-storage: 200Mi
+
   ingress:
     enabled: false
 
+  # Example configuration for g2krepeater instances:
+  # default:
+  #   enabled: true
+  #   replicas: 1
+  #   image:
+  #     repository: vmelikyan/g2krepeater
+  #     tag: "" # Defaults to Chart.AppVersion if not specified
+  #   resources:
+  #     requests:
+  #       cpu: 250m
+  #       memory: 500Mi
+  #       ephemeral-storage: 100Mi
+  #     limits:
+  #       cpu: 500m
+  #       memory: 1Gi
+  #       ephemeral-storage: 200Mi
+  #   envVars:
+  #     KAFKA_GROUP_ID: "g2krepeater-default"
+  #     REPLAY_ENDPOINTS: "https://example.com/webhook"
+  #     REPO_FILTERS: "" # Empty means all repos
 g2krepeaters: {}

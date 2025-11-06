@@ -43,6 +43,10 @@ spec:
       containers:
         - name: g2krepeater
           image: {{ include "g2k.g2krepeater.image" (dict "imageConfig" $config.image "chartAppVersion" $.Chart.AppVersion) | quote }}
+          {{- with $config.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           env:
             # Always inject KAFKA_BOOTSTRAP_SERVERS with auto-config, unless explicitly overridden
             - name: "KAFKA_BOOTSTRAP_SERVERS"
