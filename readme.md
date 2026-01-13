@@ -148,6 +148,14 @@ g2krepeaters:
       KAFKA_GROUP_ID: "g2krepeater-development"
       REPLAY_ENDPOINTS: "https://dev.example.com/webhooks"
       REPO_FILTERS: "myorg/frontend,myorg/backend"
+
+  exclude-example:
+    enabled: true
+    replicas: 1
+    envVars:
+      KAFKA_GROUP_ID: "g2krepeater-exclude"
+      REPLAY_ENDPOINTS: "https://webhook.example.com/api"
+      REPO_EXCLUDE: "myorg/test-repo,myorg/archived-repo"
 ```
 
 Then deploy:

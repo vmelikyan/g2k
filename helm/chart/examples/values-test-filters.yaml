@@ -1,0 +1,83 @@
+# Test values file to validate REPO_EXCLUDE and REPO_FILTERS functionality
+# Use this with Tilt for manual testing of different filter scenarios
+
+redpanda:
+  storage:
+    persistentVolume:
+      enabled: true
+      size: 5Gi
+  resources:
+    cpu:
+      cores: 1
+      overprovisioned: true
+    memory:
+      enable_memory_locking: false
+      container:
+        max: 2Gi
+  statefulset:
+    replicas: 1
+  console:
+    enabled: true
+  listeners:
+    kafka:
+      tls:
+        enabled: false
+
+g2krelay:
+  enabled: true
+  replicas: 1
+  envVars:
+    WEBHOOK_SECRET: "test-webhook-secret-123"
+
+# Multiple g2krepeater instances to test different filtering scenarios
+g2krepeaters:
+  # Scenario 1: No filters - should process all repos
+  no-filters:
+    enabled: true
+    replicas: 1
+    envVars:
+      KAFKA_GROUP_ID: "test-no-filters"
+      REPLAY_ENDPOINTS: "http://httpbin.default.svc.cluster.local/post"
+      # REPO_FILTERS and REPO_EXCLUDE not set
+
+  # Scenario 2: Only REPO_FILTERS (inclusion) - should only process listed repos
+  inclusion-only:
+    enabled: true
+    replicas: 1
+    envVars:
+      KAFKA_GROUP_ID: "test-inclusion-only"
+      REPLAY_ENDPOINTS: "http://httpbin.default.svc.cluster.local/post"
+      REPO_FILTERS: "testorg/frontend,testorg/backend"
+      # This should only process testorg/frontend and testorg/backend
+
+  # Scenario 3: Only REPO_EXCLUDE (exclusion) - should process all except listed repos
+  exclusion-only:
+    enabled: true
+    replicas: 1
+    envVars:
+      KAFKA_GROUP_ID: "test-exclusion-only"
+      REPLAY_ENDPOINTS: "http://httpbin.default.svc.cluster.local/post"
+      REPO_EXCLUDE: "testorg/test-repo,testorg/archived-repo"
+      # This should process all repos EXCEPT testorg/test-repo and testorg/archived-repo
+
+  # Scenario 4: Both filters set - REPO_FILTERS should take precedence
+  both-filters:
+    enabled: true
+    replicas: 1
+    envVars:
+      KAFKA_GROUP_ID: "test-both-filters"
+      REPLAY_ENDPOINTS: "http://httpbin.default.svc.cluster.local/post"
+      REPO_FILTERS: "testorg/frontend,testorg/backend,testorg/mobile"
+      REPO_EXCLUDE: "testorg/frontend,testorg/test-repo"
+      # REPO_FILTERS takes precedence, should process: frontend, backend, mobile
+      # REPO_EXCLUDE should be ignored completely
+
+  # Scenario 5: Single repo exclusion
+  single-exclusion:
+    enabled: true
+    replicas: 1
+    envVars:
+      KAFKA_GROUP_ID: "test-single-exclusion"
+      REPLAY_ENDPOINTS: "http://httpbin.default.svc.cluster.local/post"
+      REPO_EXCLUDE: "testorg/test-repo"
+      # Should process all repos except testorg/test-repo

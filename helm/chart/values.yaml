@@ -71,4 +71,5 @@ g2krelay:
   #     KAFKA_GROUP_ID: "g2krepeater-default"
   #     REPLAY_ENDPOINTS: "https://example.com/webhook"
   #     REPO_FILTERS: "" # Empty means all repos
+  #     REPO_EXCLUDE: "" # Exclude specific repos (only when REPO_FILTERS is empty)
 g2krepeaters: {}

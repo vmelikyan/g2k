@@ -2,8 +2,8 @@ apiVersion: v2
 name: g2k
 description: A Helm chart for GitHub to Kafka webhook processing with Redpanda, supporting multiple webhook forwarders
 type: application
-version: 0.6.0
-appVersion: "0.4.0"
+version: 0.7.0
+appVersion: "0.5.0"
 home: https://github.com/vmelikyan/g2k
 sources:
   - https://github.com/vmelikyan/g2k
@@ -19,11 +19,11 @@ keywords:
 annotations:
   artifacthub.io/changes: |
     - kind: added
-      description: Support for external Kafka clusters (AWS MSK, Confluent Cloud, etc.)
+      description: REPO_EXCLUDE environment variable for g2krepeater to exclude specific repositories
     - kind: added
-      description: Optional Redpanda deployment - can be disabled for external Kafka use
+      description: Repository filtering precedence - REPO_FILTERS takes precedence over REPO_EXCLUDE
     - kind: added
-      description: Component-level deployment (relay-only or repeater-only scenarios)
+      description: Enhanced logging with specific skip reasons for filtered repositories
 dependencies:
   - name: redpanda
     version: "~5.10.1"

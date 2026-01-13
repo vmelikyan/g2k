@@ -23,3 +23,7 @@ spec:
               value: g2krepeater-group
             - name: REPLAY_ENDPOINTS
               value: "http://endpoint1.com/webhook,http://endpoint2.com/webhook,http://endpoint3.com/webhook"
+            # - name: REPO_FILTERS
+            #   value: "myorg/repo1,myorg/repo2"
+            # - name: REPO_EXCLUDE
+            #   value: "myorg/test-repo,myorg/archived-repo"
