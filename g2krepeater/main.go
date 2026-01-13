@@ -39,6 +39,7 @@ func main() {
 	}
 
 	allowedRepos := buildAllowedReposSet()
+	excludedRepos := buildExcludedReposSet()
 
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
@@ -55,7 +56,7 @@ func main() {
 		default:
 			msg, err := consumer.ReadMessage(500 * time.Millisecond)
 			if err == nil {
-				if !shouldProcessMessage(msg, allowedRepos, logger) {
+				if !shouldProcessMessage(msg, allowedRepos, excludedRepos, logger) {
 					continue
 				}
 
@@ -91,25 +92,55 @@ func buildAllowedReposSet() map[string]bool {
 	return allowed
 }
 
-func shouldProcessMessage(msg *kafka.Message, allowedRepos map[string]bool, logger *zap.Logger) bool {
-	if allowedRepos == nil {
-		return true
+func buildExcludedReposSet() map[string]bool {
+	repoExclude := os.Getenv("REPO_EXCLUDE")
+	if repoExclude == "" {
+		return nil
 	}
 
+	excluded := make(map[string]bool)
+	for _, r := range strings.Split(repoExclude, ",") {
+		trimmed := strings.TrimSpace(r)
+		if trimmed != "" {
+			excluded[trimmed] = true
+		}
+	}
+	return excluded
+}
+
+func shouldProcessMessage(msg *kafka.Message, allowedRepos map[string]bool, excludedRepos map[string]bool, logger *zap.Logger) bool {
+	// Extract repo name from message key
 	keyParts := strings.Split(string(msg.Key), ".")
 	if len(keyParts) < 2 {
 		return false
 	}
 	orgRepo := keyParts[0] + "/" + keyParts[1]
 
-	if allowedRepos[orgRepo] {
-		return true
+	// If inclusion filter is set, use it (ignore exclusion filter)
+	if allowedRepos != nil {
+		if allowedRepos[orgRepo] {
+			return true
+		}
+		logger.Info("Skipping message",
+			zap.String("repo", orgRepo),
+			zap.String("reason", "not in inclusion filter"),
+		)
+		return false
 	}
-	logger.Info("Skipping message",
-		zap.String("repo", orgRepo),
-		zap.String("reason", "not in filter"),
-	)
-	return false
+
+	// If exclusion filter is set, check if repo should be excluded
+	if excludedRepos != nil {
+		if excludedRepos[orgRepo] {
+			logger.Info("Skipping message",
+				zap.String("repo", orgRepo),
+				zap.String("reason", "in exclusion filter"),
+			)
+			return false
+		}
+	}
+
+	// No filters or repo passes all filters
+	return true
 }
 
 func sendMessageAsHTTPPost(message *kafka.Message, logger *zap.Logger) error {
