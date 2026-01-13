@@ -34,3 +34,24 @@ g2krepeaters:
       REPLAY_ENDPOINTS: "https://staging.example.com/webhook"
       REPO_FILTERS: "myorg/api,myorg/frontend"
 
+  # Example: Process all repos except specific ones
+  main-exclude:
+    enabled: false
+    replicas: 1
+    image:
+      repository: vmelikyan/g2krepeater
+      tag: ""
+    resources:
+      requests:
+        cpu: 250m
+        memory: 500Mi
+        ephemeral-storage: 100Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+        ephemeral-storage: 200Mi
+    envVars:
+      KAFKA_GROUP_ID: "g2krepeater-main-exclude"
+      REPLAY_ENDPOINTS: "https://main-webhook.example.com/api"
+      REPO_EXCLUDE: "myorg/test-repo,myorg/archived-repo"
+

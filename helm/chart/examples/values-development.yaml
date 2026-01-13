@@ -40,4 +40,5 @@ g2krepeaters:
       KAFKA_GROUP_ID: "g2krepeater-test"
       REPLAY_ENDPOINTS: "http://webhook-test-service.default.svc.cluster.local/webhook"
       REPO_FILTERS: "" # All repos
+      REPO_EXCLUDE: "" # No repos excluded
 
