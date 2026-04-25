@@ -62,7 +62,7 @@ The Helm chart includes everything needed to get started:
 
 ```bash
 # Install with required webhook secret
-helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.5.0 \
+helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.8.0 \
   --set g2krelay.envVars.WEBHOOK_SECRET="your-github-webhook-secret-here"
 ```
 
@@ -76,11 +76,11 @@ This creates a production-ready setup with:
 
 ```bash
 # Basic installation (WEBHOOK_SECRET required)
-helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.5.0 \
+helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.8.0 \
   --set g2krelay.envVars.WEBHOOK_SECRET="your-webhook-secret"
 
 # Install with external Kafka (no Redpanda deployment)
-helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.5.0 \
+helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.8.0 \
   --set global.kafka.enabled=false \
   --set global.kafka.externalBrokers="kafka.example.com:9092" \
   --set g2krelay.envVars.WEBHOOK_SECRET="your-webhook-secret"
@@ -107,14 +107,14 @@ helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.5.0 \
 
 ```bash
 # Connect to external Redpanda cluster
-helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.5.0 \
+helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.8.0 \
   --set global.kafka.enabled=false \
   --set global.kafka.externalBrokers="redpanda-cluster.example.com:9092" \
   --set g2krelay.envVars.WEBHOOK_SECRET="your-webhook-secret"
 
 
 # Deploy only g2krelay (use external consumers)
-helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.5.0 \
+helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.8.0 \
   --set global.kafka.enabled=false \
   --set global.kafka.externalBrokers="kafka.example.com:9092" \
   --set g2krelay.enabled=true \
@@ -169,7 +169,7 @@ g2krepeaters:
 Then deploy:
 
 ```bash
-helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.5.0 -f values-custom.yaml
+helm install g2k oci://ghcr.io/vmelikyan/g2k --version 0.8.0 -f values-custom.yaml
 ```
 
 ### Tests
