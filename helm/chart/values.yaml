@@ -50,6 +50,17 @@ g2krelay:
 
   ingress:
     enabled: false
+  # Optional deployment update strategy.
+  # strategy:
+  #   type: RollingUpdate
+  #   rollingUpdate:
+  #     maxUnavailable: 0
+  #     maxSurge: 1
+  podDisruptionBudget:
+    enabled: false
+    # Set exactly one of minAvailable or maxUnavailable.
+    # minAvailable: 1
+    # maxUnavailable: 1
 
   # Example configuration for g2krepeater instances:
   # default:
@@ -72,4 +83,12 @@ g2krelay:
   #     REPLAY_ENDPOINTS: "https://example.com/webhook"
   #     REPO_FILTERS: "" # Empty means all repos
   #     REPO_EXCLUDE: "" # Exclude specific repos (only when REPO_FILTERS is empty)
+  #   strategy:
+  #     type: RollingUpdate
+  #     rollingUpdate:
+  #       maxUnavailable: 0
+  #       maxSurge: 1
+  #   podDisruptionBudget:
+  #     enabled: true
+  #     minAvailable: 1
 g2krepeaters: {}

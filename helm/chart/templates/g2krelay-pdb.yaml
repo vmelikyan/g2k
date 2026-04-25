@@ -1,0 +1,13 @@
+{{- if and .Values.g2krelay.enabled ((.Values.g2krelay.podDisruptionBudget).enabled | default false) }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: g2krelay
+  labels:
+    app: g2krelay
+spec:
+  {{- include "g2k.podDisruptionBudget.availability" .Values.g2krelay.podDisruptionBudget | nindent 2 }}
+  selector:
+    matchLabels:
+      app: g2krelay
+{{- end }}

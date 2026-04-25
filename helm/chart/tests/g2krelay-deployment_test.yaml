@@ -151,6 +151,25 @@ tests:
               operator: "Exists"
               effect: "NoExecute"
 
+  - it: should include deployment strategy when specified
+    set:
+      g2krelay.enabled: true
+      g2krelay.envVars:
+        WEBHOOK_SECRET: "my-secret-key"
+      g2krelay.strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxUnavailable: 0
+          maxSurge: 1
+    asserts:
+      - equal:
+          path: spec.strategy
+          value:
+            type: RollingUpdate
+            rollingUpdate:
+              maxUnavailable: 0
+              maxSurge: 1
+
   - it: should not include nodeSelector when not specified
     set:
       g2krelay.enabled: true

@@ -1,0 +1,89 @@
+suite: test g2krepeater pod disruption budget
+templates:
+  - g2krepeater-pdb.yaml
+tests:
+  - it: should not render when disabled
+    set:
+      g2krepeaters:
+        default:
+          enabled: true
+          replicas: 1
+          podDisruptionBudget:
+            enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should render a pdb for enabled repeater instances
+    set:
+      g2krepeaters:
+        production:
+          enabled: true
+          replicas: 3
+          podDisruptionBudget:
+            enabled: true
+            minAvailable: 1
+        development:
+          enabled: true
+          replicas: 1
+          podDisruptionBudget:
+            enabled: false
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: PodDisruptionBudget
+      - equal:
+          path: metadata.name
+          value: g2krepeater-production
+      - equal:
+          path: spec.minAvailable
+          value: 1
+      - equal:
+          path: spec.selector.matchLabels
+          value:
+            app: g2krepeater
+            instance: production
+
+  - it: should render maxUnavailable
+    set:
+      g2krepeaters:
+        default:
+          enabled: true
+          replicas: 3
+          podDisruptionBudget:
+            enabled: true
+            maxUnavailable: 1
+    asserts:
+      - equal:
+          path: spec.maxUnavailable
+          value: 1
+
+  - it: should support backward compatibility with legacy g2krepeater config
+    set:
+      g2krepeater:
+        enabled: true
+        replicas: 3
+        podDisruptionBudget:
+          enabled: true
+          minAvailable: 1
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: g2krepeater-default
+
+  - it: should fail when both availability settings are set
+    set:
+      g2krepeaters:
+        default:
+          enabled: true
+          replicas: 3
+          podDisruptionBudget:
+            enabled: true
+            minAvailable: 1
+            maxUnavailable: 1
+    asserts:
+      - failedTemplate:
+          errorMessage: "Set only one of minAvailable or maxUnavailable for podDisruptionBudget"

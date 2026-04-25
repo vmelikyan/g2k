@@ -136,6 +136,14 @@ g2krepeaters:
   production:
     enabled: true
     replicas: 3
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxUnavailable: 0
+        maxSurge: 1
+    podDisruptionBudget:
+      enabled: true
+      minAvailable: 1
     envVars:
       KAFKA_GROUP_ID: "g2krepeater-production"
       REPLAY_ENDPOINTS: "https://prod.example.com/webhooks"

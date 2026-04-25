@@ -18,6 +18,10 @@ metadata:
     instance: {{ $name }}
 spec:
   replicas: {{ $config.replicas }}
+  {{- with $config.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       app: g2krepeater

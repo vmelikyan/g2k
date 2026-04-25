@@ -54,3 +54,20 @@ Get Kafka broker address - either from Redpanda subchart or external brokers
 {{- end -}}
 {{- end -}}
 
+{{/*
+Render PodDisruptionBudget availability. Kubernetes requires exactly one of
+minAvailable or maxUnavailable.
+*/}}
+{{- define "g2k.podDisruptionBudget.availability" -}}
+{{- $pdb := . -}}
+{{- if and (hasKey $pdb "minAvailable") (hasKey $pdb "maxUnavailable") -}}
+{{- fail "Set only one of minAvailable or maxUnavailable for podDisruptionBudget" -}}
+{{- end -}}
+{{- if hasKey $pdb "minAvailable" -}}
+{{- dict "minAvailable" $pdb.minAvailable | toYaml -}}
+{{- else if hasKey $pdb "maxUnavailable" -}}
+{{- dict "maxUnavailable" $pdb.maxUnavailable | toYaml -}}
+{{- else -}}
+minAvailable: 1
+{{- end -}}
+{{- end -}}

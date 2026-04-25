@@ -78,6 +78,28 @@ tests:
               operator: "Exists"
               effect: "NoExecute"
 
+  - it: should include deployment strategy when specified for single instance
+    set:
+      g2krepeaters:
+        default:
+          enabled: true
+          replicas: 3
+          strategy:
+            type: RollingUpdate
+            rollingUpdate:
+              maxUnavailable: 0
+              maxSurge: 1
+          envVars:
+            KAFKA_GROUP_ID: "default-group"
+    asserts:
+      - equal:
+          path: spec.strategy
+          value:
+            type: RollingUpdate
+            rollingUpdate:
+              maxUnavailable: 0
+              maxSurge: 1
+
   - it: should not include nodeSelector when not specified
     set:
       g2krepeaters:

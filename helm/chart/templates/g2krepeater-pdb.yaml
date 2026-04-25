@@ -1,0 +1,26 @@
+{{- /* Handle backward compatibility - convert old single g2krepeater to new format */}}
+{{- $g2krepeaters := .Values.g2krepeaters }}
+{{- if and ((.Values.g2krepeater).enabled | default false) (not $g2krepeaters) }}
+  {{- $g2krepeaters = dict "default" .Values.g2krepeater }}
+{{- else if and ((.Values.g2krepeater).enabled | default false) (not (hasKey $g2krepeaters "default")) }}
+  {{- $_ := set $g2krepeaters "default" .Values.g2krepeater }}
+{{- end }}
+
+{{- range $name, $config := $g2krepeaters }}
+{{- if and $config.enabled (($config.podDisruptionBudget).enabled | default false) }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: g2krepeater-{{ $name }}
+  labels:
+    app: g2krepeater
+    instance: {{ $name }}
+spec:
+  {{- include "g2k.podDisruptionBudget.availability" $config.podDisruptionBudget | nindent 2 }}
+  selector:
+    matchLabels:
+      app: g2krepeater
+      instance: {{ $name }}
+{{- end }}
+{{- end }}
