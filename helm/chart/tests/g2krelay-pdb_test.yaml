@@ -1,0 +1,53 @@
+suite: test g2krelay pod disruption budget
+templates:
+  - g2krelay-pdb.yaml
+tests:
+  - it: should not render when disabled
+    set:
+      g2krelay.enabled: true
+      g2krelay.podDisruptionBudget.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should render with minAvailable when enabled
+    set:
+      g2krelay.enabled: true
+      g2krelay.podDisruptionBudget:
+        enabled: true
+        minAvailable: 1
+    asserts:
+      - isKind:
+          of: PodDisruptionBudget
+      - equal:
+          path: metadata.name
+          value: g2krelay
+      - equal:
+          path: spec.minAvailable
+          value: 1
+      - equal:
+          path: spec.selector.matchLabels
+          value:
+            app: g2krelay
+
+  - it: should render with maxUnavailable when enabled
+    set:
+      g2krelay.enabled: true
+      g2krelay.podDisruptionBudget:
+        enabled: true
+        maxUnavailable: 25%
+    asserts:
+      - equal:
+          path: spec.maxUnavailable
+          value: 25%
+
+  - it: should fail when both availability settings are set
+    set:
+      g2krelay.enabled: true
+      g2krelay.podDisruptionBudget:
+        enabled: true
+        minAvailable: 1
+        maxUnavailable: 1
+    asserts:
+      - failedTemplate:
+          errorMessage: "Set only one of minAvailable or maxUnavailable for podDisruptionBudget"

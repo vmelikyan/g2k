@@ -10,6 +10,10 @@ metadata:
     app: g2krelay
 spec:
   replicas: {{ .Values.g2krelay.replicas }}
+  {{- with .Values.g2krelay.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       app: g2krelay
@@ -51,4 +55,3 @@ spec:
           ports:
             - containerPort: 5050
 {{- end }}
-

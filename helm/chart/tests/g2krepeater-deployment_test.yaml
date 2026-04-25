@@ -78,6 +78,28 @@ tests:
               operator: "Exists"
               effect: "NoExecute"
 
+  - it: should include deployment strategy when specified for single instance
+    set:
+      g2krepeaters:
+        default:
+          enabled: true
+          replicas: 3
+          strategy:
+            type: RollingUpdate
+            rollingUpdate:
+              maxUnavailable: 0
+              maxSurge: 1
+          envVars:
+            KAFKA_GROUP_ID: "default-group"
+    asserts:
+      - equal:
+          path: spec.strategy
+          value:
+            type: RollingUpdate
+            rollingUpdate:
+              maxUnavailable: 0
+              maxSurge: 1
+
   - it: should not include nodeSelector when not specified
     set:
       g2krepeaters:
@@ -163,33 +185,3 @@ tests:
     asserts:
       - hasDocuments:
           count: 0
-
-  - it: should support backward compatibility with legacy g2krepeater config
-    set:
-      g2krepeater:
-        enabled: true
-        replicas: 1
-        envVars:
-          KAFKA_GROUP_ID: "legacy-group"
-        nodeSelector:
-          legacy: "true"
-        tolerations:
-          - key: "legacy"
-            operator: "Exists"
-            effect: "NoSchedule"
-    asserts:
-      - hasDocuments:
-          count: 1
-      - equal:
-          path: metadata.name
-          value: g2krepeater-default
-      - equal:
-          path: spec.template.spec.nodeSelector
-          value:
-            legacy: "true"
-      - equal:
-          path: spec.template.spec.tolerations
-          value:
-            - key: "legacy"
-              operator: "Exists"
-              effect: "NoSchedule"
